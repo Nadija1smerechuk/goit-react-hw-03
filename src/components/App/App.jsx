@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import './App.css'
-import Contact from '../Contact/Contact';
+
+import React, { useState, useEffect } from 'react';
+import './App.css';
 import ContactList  from '../ContactList/ContactList';
 import SearchBox from '../SearchBox/SearchBox';
+import ContactForm from '../ContactForm/ContactForm';
 
 export default function App() {
 
@@ -13,27 +14,41 @@ export default function App() {
     {id: 'id-4', name: 'Annie Copeland', number: '227-91-26'},
   ];
 
-  const [contacts, setContacts] = useState(initialState);
+  const [contacts, setContacts] = useState(() => {
+    const savedContacts = localStorage.getItem('contacts');
+    return savedContacts ? JSON.parse(savedContacts) : initialState;
+  });
 
-  // const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('');
 
-  // const handleSearch = (e) => {
-  //   setSearchTerm(e.target.value);
-  // };
+useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+  
+  const addContact = (newContact) => {
+    setContacts((prevContact) => {
+      return [...prevContact, newContact]
+    })
+  };
+  
+  const deleteContact = (contactId) => {
+    setContacts((prevContacts) => {
+      return prevContacts.filter((contact) => contact.id !== contactId);
+    });
+  } 
+  
+  
 
-  // const filteredContacts = contacts.filter(contact =>
-  //   contact.name.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
-
-
+  const filteredContacts = contacts.filter(contact =>
+    contact.name.toLowerCase().includes(filter.toLowerCase()));
 
   return (
     <>
       <h1>Phonebook</h1>
-      <SearchBox />
-      <ContactList contacts={contacts} />
-      
+      <ContactForm onAdd={ addContact} />
+      <SearchBox value={filter} onFilter={setFilter} />
+      <ContactList contacts={filteredContacts} onDelete = {deleteContact} />
     </>
-  )
+  );
 }
 
